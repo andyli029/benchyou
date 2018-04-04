@@ -71,7 +71,7 @@ func CreateWorkers(conf *xcommon.Conf, threads int) []Worker {
 		workers = append(workers, Worker{
 			S: conn,
 			M: &Metric{},
-			E: conf.MysqlTableEngine,
+
 			N: conf.OltpTablesCount,
 		},
 		)

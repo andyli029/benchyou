@@ -13,12 +13,13 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"math/rand"
+//	"math/rand"
 	"sync"
 	"sync/atomic"
 	"time"
 	"xcommon"
 	"xworker"
+	"strconv"
 )
 
 // Update tuple.
@@ -76,38 +77,16 @@ func (update *Update) Update(worker *xworker.Worker, num int, id int) {
 			lo++
 		}
 		c := xcommon.RandString(xcommon.Ctemplate)
-		table := rand.Int31n(int32(worker.N))
-		sql = fmt.Sprintf("update benchyou%d set c='%s' where id=%v", table, c, id)
+		c = strconv.Itoa(10)
+		//table := rand.Int31n(int32(worker.N))
+		sql = fmt.Sprintf("update mbk_modou_total_v2  set modou=modou+'%s' where user_id=%v",  c, id)
 
 		t := time.Now()
-		// Txn start.
-		mod := worker.M.WNums % uint64(update.conf.BatchPerCommit)
-		if update.conf.BatchPerCommit > 1 {
-			if mod == 0 {
-				if err := session.Exec("begin"); err != nil {
-					log.Panicf("update.error[%v]", err)
-				}
-			}
-		}
-		// XA start.
-		if update.conf.XA {
-			xaStart(worker, hi, lo)
-		}
+		
 		if err := session.Exec(sql); err != nil {
 			log.Panicf("update.error[%v]", err)
 		}
-		// XA end.
-		if update.conf.XA {
-			xaEnd(worker)
-		}
-		// Txn end.
-		if update.conf.BatchPerCommit > 1 {
-			if mod == uint64(update.conf.BatchPerCommit-1) {
-				if err := session.Exec("commit"); err != nil {
-					log.Panicf("update.error[%v]", err)
-				}
-			}
-		}
+		
 		elapsed := time.Since(t)
 
 		// stats

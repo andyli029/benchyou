@@ -29,21 +29,21 @@ func NewTable(workers []xworker.Worker) *Table {
 func (t *Table) Prepare() {
 	session := t.workers[0].S
 	count := t.workers[0].N
-	engine := t.workers[0].E
+	//engine := 'innodb'
 	for i := 0; i < count; i++ {
-		sql := fmt.Sprintf(`create table benchyou%d (
+		sql := fmt.Sprintf(`create table sysbench%d (
 							id bigint(20) unsigned not null auto_increment,
 							k bigint(20) unsigned not null default '0',
 							c char(120) not null default '',
 							pad char(60) not null default '',
 							primary key (id),
 							key k_1 (k)
-							) engine=%s`, i, engine)
+							) engine=innodb`, i)
 
 		if err := session.Exec(sql); err != nil {
 			log.Panicf("creata.table.error[%v]", err)
 		}
-		log.Printf("create table benchyou%d(engine=%v) finished...\n", i, engine)
+		log.Printf("create table sysbench_%04d finished...\n", i)
 	}
 }
 
@@ -52,11 +52,11 @@ func (t *Table) Cleanup() {
 	session := t.workers[0].S
 	count := t.workers[0].N
 	for i := 0; i < count; i++ {
-		sql := fmt.Sprintf(`drop table benchyou%d;`, i)
+		sql := fmt.Sprintf(`drop table sysbench%d;`, i)
 
 		if err := session.Exec(sql); err != nil {
 			log.Panicf("drop.table.error[%v]", err)
 		}
-		log.Printf("drop table benchyou%d finished...\n", i)
+		log.Printf("drop table sysbench_%04d finished...\n", i)
 	}
 }

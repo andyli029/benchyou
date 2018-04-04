@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"math/rand"
+//	"math/rand"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -75,40 +75,16 @@ func (delete *Delete) Delete(worker *xworker.Worker, num int, id int) {
 			id = lo
 			lo++
 		}
-		table := rand.Int31n(int32(worker.N))
-		sql = fmt.Sprintf("delete from benchyou%d where id=%v", table, id)
+	       //	table := rand.Int31n(int32(worker.N))
+		sql = fmt.Sprintf("delete from sysbench where id=%v",  id)
 
 		t := time.Now()
-		// Txn start.
-		mod := worker.M.WNums % uint64(delete.conf.BatchPerCommit)
-		if delete.conf.BatchPerCommit > 1 {
-			if mod == 0 {
-				if err := session.Exec("begin"); err != nil {
-					log.Panicf("delete.error[%v]", err)
-				}
-			}
-		}
-		// XA start.
-		if delete.conf.XA {
-			xaStart(worker, hi, lo)
-		}
+		
 		if err := session.Exec(sql); err != nil {
 			log.Panicf("delete.error[%v]", err)
 		}
-		// XA end.
-		if delete.conf.XA {
-			xaEnd(worker)
-		}
-		// Txn end.
-		if delete.conf.BatchPerCommit > 1 {
-			if mod == uint64(delete.conf.BatchPerCommit-1) {
-				if err := session.Exec("commit"); err != nil {
-					log.Panicf("delete.error[%v]", err)
-				}
-			}
-		}
+		
 		elapsed := time.Since(t)
-
 		// stats
 		nsec := uint64(elapsed.Nanoseconds())
 		worker.M.WCosts += nsec

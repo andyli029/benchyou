@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"math/rand"
+//	"math/rand"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -69,9 +69,9 @@ func (r *Range) Query(worker *xworker.Worker, num int, id int) {
 		lower := xcommon.RandInt64(lo, hi)
 		upper := xcommon.RandInt64(lower, hi)
 
-		table := rand.Int31n(int32(worker.N))
-		sql := fmt.Sprintf("SELECT * FROM benchyou%d WHERE id BETWEEN %d AND %d ORDER BY id %v LIMIT 100",
-			table, lower, upper, r.order)
+		//table := rand.Int31n(int32(worker.N))
+		sql := fmt.Sprintf("SELECT * FROM sysbench WHERE id BETWEEN %d AND %d ORDER BY id %v LIMIT 100",
+			lower, upper, r.order)
 		t := time.Now()
 		if err := session.Exec(sql); err != nil {
 			log.Panicf("range.error[%v]", err)

@@ -146,3 +146,8 @@ query-range(Write/Read Ratio=128:8):
 ## License
 
 benchyou is released under the GPLv3. See LICENSE
+
+#
+./bin/benchyou  --mysql-host=10.201.200.2 --mysql-port=6000 --mysql-user=root --mysql-password=123456 --mysql-table-engine=innodb --mysql-db=mbk_a --oltp-tables-count=10 prepare
+
+./bin/benchyou  --mysql-host=10.201.200.2 --mysql-port=6000 --mysql-user=root --mysql-password=123456 --mysql-table-engine=innodb --mysql-db=mbk_a --ssh-user=benchyou --ssh-password=benchyou --oltp-tables-count=10 --write-threads=4 --read-threads=4 --update-threads=4 --delete-threads=4 --max-time=10 random

@@ -13,14 +13,14 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"math/rand"
+//	"math/rand"
 	"sync"
 	"sync/atomic"
 	"time"
 	"xcommon"
 	"xworker"
 
-	"github.com/xelabs/go-mysqlstack/common"
+      //	"github.com/xelabs/go-mysqlstack/common"
 )
 
 // Insert tuple.
@@ -66,20 +66,26 @@ func (insert *Insert) Insert(worker *xworker.Worker, num int, id int) {
 	bs := int64(math.MaxInt64) / int64(num)
 	lo := bs * int64(id)
 	hi := bs * int64(id+1)
-	columns1 := "k,c,pad"
+	sqls := `INSERT INTO  mbk_modou_v2  (
+		modou_id,user_id,city_code,type,exchange_status,order_id,activity_id,modou,description, has_apply, apply_expire_time,expire_time )
+		VALUES ('MD1522294684493579271222', '%v', '010', 4, null, null, null, 2, 'MOCOIN_TYPE_SHARE', '1', null, null )`
+	/*columns1 := "k,c,pad"
 	columns2 := "k,c,pad,id"
 	valfmt1 := "(%v,'%s', '%s'),"
 	valfmt2 := "(%v,'%s', '%s', %v),"
+        */
 
 	for !insert.stop {
-		var sql, value string
-		buf := common.NewBuffer(256)
+		var sql  string
+		user_id := xcommon.RandInt64(lo, hi)
+		sql = fmt.Sprintf(sqls, user_id)
+	//	buf := common.NewBuffer(256)
 
-		table := rand.Int31n(int32(worker.N))
-		if insert.conf.Random {
-			sql = fmt.Sprintf("insert into benchyou%d(%s) values", table, columns2)
+		//table := rand.Int31n(int32(worker.N))
+	/*	if insert.conf.Random {
+			sql = fmt.Sprintf("insert into sysbench(%s) values", columns2)
 		} else {
-			sql = fmt.Sprintf("insert into benchyou%d(%s) values", table, columns1)
+			sql = fmt.Sprintf("insert into sysbench(%s) values",  columns1)
 		}
 
 		// pack requests
@@ -109,36 +115,14 @@ func (insert *Insert) Insert(worker *xworker.Worker, num int, id int) {
 			log.Panicf("insert.error[%v]", err)
 		}
 		sql += vals
+            */
 
 		t := time.Now()
-		// Txn start.
-		mod := worker.M.WNums % uint64(insert.conf.BatchPerCommit)
-		if insert.conf.BatchPerCommit > 1 {
-			if mod == 0 {
-				if err := session.Exec("begin"); err != nil {
-					log.Panicf("insert.error[%v]", err)
-				}
-			}
-		}
-		// XA start.
-		if insert.conf.XA {
-			xaStart(worker, hi, lo)
-		}
+               // fmt.Printf(sql)		
 		if err := session.Exec(sql); err != nil {
 			log.Panicf("insert.error[%v]", err)
 		}
-		// XA end.
-		if insert.conf.XA {
-			xaEnd(worker)
-		}
-		// Txn end.
-		if insert.conf.BatchPerCommit > 1 {
-			if mod == uint64(insert.conf.BatchPerCommit-1) {
-				if err := session.Exec("commit"); err != nil {
-					log.Panicf("insert.error[%v]", err)
-				}
-			}
-		}
+		
 		elapsed := time.Since(t)
 
 		// stats
@@ -161,27 +145,3 @@ func (insert *Insert) Insert(worker *xworker.Worker, num int, id int) {
 	insert.lock.Done()
 }
 
-func xaStart(worker *xworker.Worker, hi int64, lo int64) {
-	session := worker.S
-	worker.XID = fmt.Sprintf("BXID-%v-%v", time.Now().Format("20060102150405"), (rand.Int63n(hi-lo) + lo))
-	start := fmt.Sprintf("xa start '%s'", worker.XID)
-	if err := session.Exec(start); err != nil {
-		log.Panicf("xa.start..error[%v]", err)
-	}
-}
-
-func xaEnd(worker *xworker.Worker) {
-	session := worker.S
-	end := fmt.Sprintf("xa end '%s'", worker.XID)
-	if err := session.Exec(end); err != nil {
-		log.Panicf("xa.end.error[%v]", err)
-	}
-	prepare := fmt.Sprintf("xa prepare '%s'", worker.XID)
-	if err := session.Exec(prepare); err != nil {
-		log.Panicf("xa.prepare.error[%v]", err)
-	}
-	commit := fmt.Sprintf("xa commit '%s'", worker.XID)
-	if err := session.Exec(commit); err != nil {
-		log.Panicf("xa.commit.error[%v]", err)
-	}
-}

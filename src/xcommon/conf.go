@@ -31,6 +31,5 @@ type Conf struct {
 	MaxTime          int
 	MaxRequest       uint64
 	OltpTablesCount  int
-	XA               bool
 	Random           bool
 }

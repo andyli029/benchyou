@@ -74,11 +74,11 @@ func parseConf(cmd *cobra.Command) (conf *xcommon.Conf, err error) {
 	if conf.MysqlDb, err = cmd.Flags().GetString("mysql-db"); err != nil {
 		return
 	}
-
+/*
 	if conf.MysqlTableEngine, err = cmd.Flags().GetString("mysql-table-engine"); err != nil {
 		return
 	}
-
+*/
 	if conf.OltpTablesCount, err = cmd.Flags().GetInt("oltp-tables-count"); err != nil {
 		return
 	}
@@ -102,14 +102,7 @@ func parseConf(cmd *cobra.Command) (conf *xcommon.Conf, err error) {
 	if conf.MysqlRangeOrder, err = cmd.Flags().GetString("mysql-range-order"); err != nil {
 		return
 	}
-
-	xa := 0
-	if xa, err = cmd.Flags().GetInt("mysql-enable-xa"); err != nil {
-		return
-	}
-	if xa > 0 {
-		conf.XA = true
-	}
+	
 	return
 }
 

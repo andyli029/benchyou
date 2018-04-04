@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"math/rand"
+//	"math/rand"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -74,11 +74,14 @@ func (q *Query) Query(worker *xworker.Worker, num int, id int) {
 			lo++
 		}
 
-		table := rand.Int31n(int32(worker.N))
-		sql := fmt.Sprintf("SELECT * FROM benchyou%d WHERE id=%v", table, rid)
+		//table := rand.Int31n(int32:(worker.N))
+		sqlformat := "select modou_id, user_id, city_code, type, exchange_status, order_id, activity_id, modou, description, has_apply, is_delete, crt_time, upd_time, apply_expire_time, expire_time from mbk_modou_v2 where user_id = %v  and has_apply = 1 and is_delete = 0 order by crt_time desc"
+		sql := fmt.Sprintf(sqlformat,  rid)
+                for  step := 0; step < 1; step ++ {
 		t := time.Now()
 		if err := session.Exec(sql); err != nil {
-			log.Panicf("query.error[%v]", err)
+			// log.Panicf("query.error[%v]", err)
+			log.Println("query.error[%v]", err)
 		}
 		elapsed := time.Since(t)
 
@@ -97,6 +100,7 @@ func (q *Query) Query(worker *xworker.Worker, num int, id int) {
 		}
 		worker.M.QNums++
 		atomic.AddUint64(&q.requests, 1)
-	}
+        	}
+         }
 	q.lock.Done()
 }
